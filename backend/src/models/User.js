@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema(
       longitude: Number,
       updatedAt: Date,
     },
+    resetOtp: { type: String, select: false },
+    resetOtpExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
