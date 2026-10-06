@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -8,39 +8,90 @@ export default function Login() {
   const [email, setEmail] = useState('manager@wildlife.com');
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSubmitting(true);
     try {
       await login(email, password);
       nav('/');
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || err.message || 'Authentication failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={onSubmit} className="bg-white p-8 rounded shadow-md w-96 space-y-4">
-        <h1 className="text-2xl font-bold text-center">🛡️ Wildlife Ops</h1>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <input
-          className="border p-2 w-full rounded"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="border p-2 w-full rounded"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="bg-green-600 text-white w-full p-2 rounded hover:bg-green-700">
-          Sign In
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-900 via-emerald-950 to-stone-950 p-4">
+      <div className="w-full max-w-md bg-stone-900/90 border border-emerald-900/60 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
+        {/* Logo and title */}
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg shadow-emerald-950/60">
+            🌿
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">WildPulse Station</h1>
+          <p className="text-xs text-emerald-400 mt-1">Smart Wildlife Conservation & Anti-Poaching System</p>
+        </div>
+
+        {error && (
+          <div className="mb-6 bg-red-950/60 border border-red-800 text-red-300 text-xs px-4 py-3 rounded-xl">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-stone-300 mb-1.5 uppercase tracking-wider">
+              Officer Email
+            </label>
+            <input
+              type="email"
+              required
+              className="w-full bg-stone-950/80 border border-emerald-900/60 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="officer@wildlife.gov"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-stone-300 mb-1.5 uppercase tracking-wider">
+              Access Token / Password
+            </label>
+            <input
+              type="password"
+              required
+              className="w-full bg-stone-950/80 border border-emerald-900/60 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full mt-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-900/40 text-sm transition-all disabled:opacity-50"
+          >
+            {submitting ? 'Authenticating...' : 'Sign In to Operations Console →'}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-emerald-900/40 text-center">
+          <p className="text-xs text-stone-400">
+            Villager or community member reporting a wildlife incident?
+          </p>
+          <Link
+            to="/report"
+            className="inline-block mt-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline"
+          >
+            Access Public Community Report Portal (No Login Required) →
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
