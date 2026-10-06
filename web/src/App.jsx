@@ -9,6 +9,7 @@ import Patrols from './pages/Patrols';
 import WildlifeMap from './pages/WildlifeMap';
 */import Conflicts from './pages/Conflicts';
 import CommunityReport from './pages/CommunityReport';
+import Analytics from './pages/Analytics';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ export default function App() {
             <Route path="map" element={<Placeholder title="🗺️ Wildlife Map (Member 4)" />} />
             <Route path="conflicts" element={<Conflicts />} />
             <Route path="alerts" element={<Placeholder title="🔔 Alerts (Member 4)" />} />
-            <Route path="analytics" element={<Placeholder title="📈 Analytics (Member 4)" />} />
+            <Route path="analytics" element={<Analytics />} />
           </Route>
         </Routes>
       </BrowserRouter>
