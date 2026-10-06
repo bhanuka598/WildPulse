@@ -12,6 +12,7 @@ const incidentRoutes = require('./routes/incidentRoutes');
 */const conflictRoutes = require('./routes/conflictRoutes');/*
 const wildlifeRoutes = require('./routes/wildlifeRoutes');
 const alertRoutes = require('./routes/alertRoutes');*/
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 connectDB();
 
@@ -30,6 +31,7 @@ app.use('/api/incidents', incidentRoutes);
 */app.use('/api/conflicts', conflictRoutes);/*
 app.use('/api/wildlife', wildlifeRoutes);
 app.use('/api/alerts', alertRoutes);*/
+app.use('/api/analytics', analyticsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
