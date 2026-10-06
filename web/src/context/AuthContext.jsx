@@ -19,12 +19,19 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
   };
 
+  const register = async (userData) => {
+    const { data } = await api.post('/auth/register', userData);
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
+    return data;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
   };
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, login, register, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

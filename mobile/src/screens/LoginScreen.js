@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
-  const [email, setEmail] = useState('ranger@wildpulse.org');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -27,7 +27,7 @@ export default function LoginScreen() {
     try {
       await login(email, password);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please check network/credentials.';
+      const msg = err.response?.data?.message || 'Login failed. Please check network or credentials.';
       Alert.alert('Authentication Failed', msg);
     } finally {
       setLoading(false);
@@ -41,7 +41,7 @@ export default function LoginScreen() {
     >
       <View style={styles.card}>
         <View style={styles.headerArea}>
-          <Text style={styles.badge}>🛡️ WILDGUARD</Text>
+          <Text style={styles.badge}>🛡️ WILDPULSE</Text>
           <Text style={styles.title}>WildPulse Ranger App</Text>
           <Text style={styles.subtitle}>Mobile Field Operations & Conflict Dispatch</Text>
         </View>
@@ -50,7 +50,7 @@ export default function LoginScreen() {
           <Text style={styles.label}>Email Address</Text>
           <TextInput
             style={styles.input}
-            placeholder="ranger@wildpulse.org"
+            placeholder=""
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -60,7 +60,7 @@ export default function LoginScreen() {
           <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="••••••••"
+            placeholder=""
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -76,6 +76,13 @@ export default function LoginScreen() {
             ) : (
               <Text style={styles.buttonText}>Log In to Field Station →</Text>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.switchBtn}
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.switchText}>New Officer? Create Field Account</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -155,5 +162,14 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 15,
+  },
+  switchBtn: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  switchText: {
+    color: '#047857',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

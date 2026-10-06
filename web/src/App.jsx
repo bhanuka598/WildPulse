@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 /*import Incidents from './pages/Incidents';
@@ -31,6 +32,7 @@ export default function App() {
           {/* Public Community Report route */}
           <Route path="/report" element={<CommunityReport />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="incidents" element={<Placeholder title="🚨 Incidents (Member 1)" />} />

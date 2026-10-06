@@ -5,8 +5,8 @@ import { useAuth } from '../context/AuthContext';
 export default function Login() {
   const { login } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState('manager@wildlife.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,7 +51,7 @@ export default function Login() {
               type="email"
               required
               className="w-full bg-stone-950/80 border border-emerald-900/60 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              placeholder="officer@wildlife.gov"
+              placeholder=""
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -59,13 +59,13 @@ export default function Login() {
 
           <div>
             <label className="block text-xs font-semibold text-stone-300 mb-1.5 uppercase tracking-wider">
-              Access Token / Password
+              Password
             </label>
             <input
               type="password"
               required
               className="w-full bg-stone-950/80 border border-emerald-900/60 rounded-xl px-4 py-3 text-sm text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              placeholder="••••••••"
+              placeholder=""
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -82,14 +82,22 @@ export default function Login() {
 
         <div className="mt-8 pt-6 border-t border-emerald-900/40 text-center">
           <p className="text-xs text-stone-400">
-            Villager or community member reporting a wildlife incident?
+            Need a new officer account?{' '}
+            <Link to="/register" className="text-emerald-400 font-semibold hover:text-emerald-300 underline">
+              Create an account
+            </Link>
           </p>
-          <Link
-            to="/report"
-            className="inline-block mt-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline"
-          >
-            Access Public Community Report Portal (No Login Required) →
-          </Link>
+          <div className="mt-4 pt-4 border-t border-emerald-900/30">
+            <p className="text-xs text-stone-400">
+              Villager or community member reporting a wildlife incident?
+            </p>
+            <Link
+              to="/report"
+              className="inline-block mt-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline"
+            >
+              Access Public Community Report Portal (No Login Required) →
+            </Link>
+          </div>
         </div>
       </div>
     </div>
