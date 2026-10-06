@@ -63,3 +63,17 @@ exports.updateLocation = async (req, res, next) => {
     next(err);
   }
 };
+
+// GET /api/auth/users?role=RANGER
+exports.getUsers = async (req, res, next) => {
+  try {
+    const filter = { isActive: true };
+    if (req.query.role) {
+      filter.role = req.query.role;
+    }
+    const users = await User.find(filter).select('-password');
+    res.json({ success: true, count: users.length, users });
+  } catch (err) {
+    next(err);
+  }
+};

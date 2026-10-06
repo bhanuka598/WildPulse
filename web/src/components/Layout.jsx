@@ -17,7 +17,7 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen">
       <aside className="w-64 bg-gray-900 text-white p-4 space-y-2">
-        <h2 className="text-xl font-bold mb-6">🛡️ Wildlife Ops</h2>
+        <h2 className="text-xl font-bold mb-6">🛡️ WildPulse</h2>
         {links.map((l) => (
           <Link key={l.to} to={l.to} className="block px-3 py-2 rounded hover:bg-gray-700">
             {l.label}

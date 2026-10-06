@@ -6,18 +6,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      const [i, p, a, c] = await Promise.all([
-        api.get('/incidents'),
-        api.get('/patrols'),
-        api.get('/alerts?unread=true'),
-        api.get('/conflicts'),
+      const fetchCount = async (url) => {
+        try {
+          const res = await api.get(url);
+          return res.data?.count ?? 0;
+        } catch {
+          return 0;
+        }
+      };
+
+      const [incidents, patrols, alerts, conflicts] = await Promise.all([
+        fetchCount('/incidents'),
+        fetchCount('/patrols'),
+        fetchCount('/alerts?unread=true'),
+        fetchCount('/conflicts'),
       ]);
-      setStats({
-        incidents: i.data.count,
-        patrols: p.data.count,
-        alerts: a.data.count,
-        conflicts: c.data.count,
-      });
+
+      setStats({ incidents, patrols, alerts, conflicts });
     })();
   }, []);
 
