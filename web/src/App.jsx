@@ -4,10 +4,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-/*import Incidents from './pages/Incidents';
-import Patrols from './pages/Patrols';
-import WildlifeMap from './pages/WildlifeMap';
-*/import Conflicts from './pages/Conflicts';
+import PatrolMonitoring from './pages/PatrolMonitoring';
+import FieldIncidents from './pages/FieldIncidents';
+import Conflicts from './pages/Conflicts';
 import CommunityReport from './pages/CommunityReport';
 import Analytics from './pages/Analytics';
 
@@ -36,8 +35,8 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
-            <Route path="incidents" element={<Placeholder title="🚨 Incidents (Member 1)" />} />
-            <Route path="patrols" element={<Placeholder title="🥾 Patrols (Member 2)" />} />
+            <Route path="incidents" element={<FieldIncidents />} />
+            <Route path="patrols" element={<PatrolMonitoring />} />
             <Route path="map" element={<Placeholder title="🗺️ Wildlife Map (Member 4)" />} />
             <Route path="conflicts" element={<Conflicts />} />
             <Route path="alerts" element={<Placeholder title="🔔 Alerts (Member 4)" />} />

@@ -7,6 +7,9 @@ import { initDB } from './src/db/database';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import PublicReportScreen from './src/screens/PublicReportScreen';
+import RangerDashboardScreen from './src/screens/RangerDashboardScreen';
+import ActivePatrolScreen from './src/screens/ActivePatrolScreen';
+import ReportIncidentScreen from './src/screens/ReportIncidentScreen';
 import RangerAssignmentsScreen from './src/screens/RangerAssignmentsScreen';
 
 const Stack = createNativeStackNavigator();
@@ -34,7 +37,12 @@ function NavigationRoot() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+          <>
+            <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
+            <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
+            <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
+            <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
