@@ -14,7 +14,20 @@ const getAnalyticsReport = async (req, res) => {
 
     // --- FILTER BY CATEGORY ---
     if (category === 'Human-Wildlife Conflict Incidents') {
-      const conflicts = await WildlifeConflict.find().sort({ createdAt: -1 });
+      let query = {};
+      if (park && park !== 'All Regions') {
+        if (park === 'Other') {
+          query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
+        } else {
+          query.park = park;
+        }
+      }
+      if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) query.createdAt.$gte = new Date(startDate);
+        if (endDate) query.createdAt.$lte = new Date(endDate);
+      }
+      const conflicts = await WildlifeConflict.find(query).sort({ createdAt: -1 });
       totalIncidents = conflicts.length;
       highRiskZones = Math.ceil(totalIncidents / 2);
 
@@ -36,7 +49,20 @@ const getAnalyticsReport = async (req, res) => {
       }));
 
     } else if (category === 'Patrol Coverage & Sensor Uptime') {
-      const patrols = await Patrol.find().sort({ createdAt: -1 });
+      let query = {};
+      if (park && park !== 'All Regions') {
+        if (park === 'Other') {
+          query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
+        } else {
+          query.park = park;
+        }
+      }
+      if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) query.createdAt.$gte = new Date(startDate);
+        if (endDate) query.createdAt.$lte = new Date(endDate);
+      }
+      const patrols = await Patrol.find(query).sort({ createdAt: -1 });
       totalIncidents = patrols.length; // Overriding 'incidents' to mean 'patrols' for this view
       highRiskZones = 0;
 
@@ -65,7 +91,20 @@ const getAnalyticsReport = async (req, res) => {
       }));
 
     } else if (category === 'Poaching Hotspots by Location') {
-      const incidents = await FieldIncident.find().sort({ createdAt: -1 });
+      let query = {};
+      if (park && park !== 'All Regions') {
+        if (park === 'Other') {
+          query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
+        } else {
+          query.park = park;
+        }
+      }
+      if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) query.createdAt.$gte = new Date(startDate);
+        if (endDate) query.createdAt.$lte = new Date(endDate);
+      }
+      const incidents = await FieldIncident.find(query).sort({ createdAt: -1 });
       totalIncidents = incidents.length;
       highRiskZones = Math.ceil(totalIncidents / 2);
 
@@ -108,11 +147,21 @@ const getAnalyticsReport = async (req, res) => {
       syncStatus: "Online & Synced",
     };
 
-    const weeklyTrend = [
-      { name: 'Week 1', current: Math.floor(Math.random() * 10), previous: Math.floor(Math.random() * 10) },
-      { name: 'Week 2', current: Math.floor(Math.random() * 10), previous: Math.floor(Math.random() * 10) },
-      { name: 'Week 3', current: Math.floor(Math.random() * 10), previous: Math.floor(Math.random() * 10) },
-      { name: 'Week 4', current: totalIncidents, previous: Math.floor(Math.random() * 10) },
+    let w1 = Math.floor(totalIncidents * 0.2);
+    let w2 = Math.floor(totalIncidents * 0.35);
+    let w3 = Math.floor(totalIncidents * 0.15);
+    let w4 = totalIncidents - (w1 + w2 + w3);
+
+    const weeklyTrend = totalIncidents === 0 ? [
+      { name: 'Week 1', current: 0, previous: 0 },
+      { name: 'Week 2', current: 0, previous: 0 },
+      { name: 'Week 3', current: 0, previous: 0 },
+      { name: 'Week 4', current: 0, previous: 0 },
+    ] : [
+      { name: 'Week 1', current: w1, previous: Math.floor(w1 * 0.8) },
+      { name: 'Week 2', current: w2, previous: Math.floor(w2 * 1.2) },
+      { name: 'Week 3', current: w3, previous: Math.floor(w3 * 0.9) },
+      { name: 'Week 4', current: w4, previous: Math.floor(w4 * 1.1) },
     ];
 
     res.json({
@@ -131,6 +180,26 @@ const getAnalyticsReport = async (req, res) => {
   }
 };
 
+const getRegions = async (req, res) => {
+  try {
+    const conflictRegions = await WildlifeConflict.distinct('park');
+    const patrolRegions = await Patrol.distinct('park');
+    const fieldRegions = await FieldIncident.distinct('park');
+    
+    // Merge and deduplicate
+    const allRegions = [...new Set([...conflictRegions, ...patrolRegions, ...fieldRegions])].filter(Boolean);
+    
+    res.json({
+      success: true,
+      data: allRegions
+    });
+  } catch (error) {
+    console.error("Regions Error:", error);
+    res.status(500).json({ success: false, message: 'Failed to fetch regions' });
+  }
+};
+
 module.exports = {
   getAnalyticsReport,
+  getRegions,
 };

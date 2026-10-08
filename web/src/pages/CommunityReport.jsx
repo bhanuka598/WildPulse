@@ -23,7 +23,8 @@ export default function CommunityReport() {
   const [conflictType, setConflictType] = useState('CROP_RAIDING');
   const [latitude, setLatitude] = useState(6.3721);
   const [longitude, setLongitude] = useState(81.5142);
-  const [villageArea, setVillageArea] = useState('');
+  const [park, setPark] = useState('Yala');
+  const [customPark, setCustomPark] = useState('');
   const [nearbyLandmark, setNearbyLandmark] = useState('');
   const [description, setDescription] = useState('');
   const [animalSpecies, setAnimalSpecies] = useState('Elephant');
@@ -85,7 +86,7 @@ export default function CommunityReport() {
       formData.append('conflictType', conflictType);
       formData.append('latitude', latitude);
       formData.append('longitude', longitude);
-      formData.append('villageArea', villageArea);
+      formData.append('park', park === 'Other' ? customPark || 'Other' : park);
       formData.append('nearbyLandmark', nearbyLandmark);
       formData.append('description', description);
       formData.append('animalSpecies', animalSpecies);
@@ -248,16 +249,34 @@ export default function CommunityReport() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">
-                  Village or Community Area <span className="text-red-500">*</span>
+                  National Park / Conservation Region <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Maduruwa Village, North Boundary"
-                  value={villageArea}
-                  onChange={(e) => setVillageArea(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm"
-                  required
-                />
+                <select
+                  value={park}
+                  onChange={(e) => setPark(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm bg-white"
+                >
+                  <option value="Yala">Yala National Park</option>
+                  <option value="Wilpattu">Wilpattu National Park</option>
+                  <option value="Udawalawe">Udawalawe National Park</option>
+                  <option value="Minneriya">Minneriya National Park</option>
+                  <option value="Other">Other Region</option>
+                </select>
+                {park === 'Other' && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-stone-700 mb-1">
+                      Specify Region Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Gal Oya National Park"
+                      value={customPark}
+                      onChange={(e) => setCustomPark(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm"
+                      required
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -308,8 +327,8 @@ export default function CommunityReport() {
               <button
                 type="button"
                 onClick={() => {
-                  if (!villageArea.trim()) {
-                    setErrorMsg('Please enter your village or community area name.');
+                  if (!park.trim() || (park === 'Other' && !customPark.trim())) {
+                    setErrorMsg('Please select or specify a conservation region.');
                     return;
                   }
                   setErrorMsg('');
@@ -472,7 +491,7 @@ export default function CommunityReport() {
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-stone-500">Location:</span>
-                <span className="font-medium text-stone-800">{submittedReport.villageArea || 'Area Registered'}</span>
+                <span className="font-medium text-stone-800">{submittedReport.park || 'Area Registered'}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-stone-500">Status:</span>
