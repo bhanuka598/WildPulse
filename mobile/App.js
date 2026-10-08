@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { initDB } from './src/db/database';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import PublicReportScreen from './src/screens/PublicReportScreen';
 import RangerDashboardScreen from './src/screens/RangerDashboardScreen';
 import ActivePatrolScreen from './src/screens/ActivePatrolScreen';
@@ -47,6 +48,7 @@ function NavigationRoot() {
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="PublicReport" component={PublicReportScreen} />
           </>
         )}

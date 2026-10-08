@@ -57,7 +57,12 @@ export default function LoginScreen({ navigation }) {
             keyboardType="email-address"
           />
 
-          <Text style={styles.label}>Password</Text>
+          <View style={styles.passwordRow}>
+            <Text style={styles.label}>Password</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+          </View>
           <TextInput
             style={styles.input}
             placeholder=""
@@ -150,6 +155,18 @@ const styles = StyleSheet.create({
     color: '#44403c',
     marginBottom: 6,
     marginTop: 12,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  forgotText: {
+    fontSize: 12,
+    color: '#047857',
+    fontWeight: '600',
   },
   input: {
     backgroundColor: '#f5f5f4',
