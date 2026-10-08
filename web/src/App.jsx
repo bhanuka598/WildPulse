@@ -38,7 +38,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
-            <Route path="incidents" element={<Placeholder title="🚨 Incidents (Member 1)" />} />
+            <Route path="incidents" element={<Placeholder title="🚨 Incidents (Member 2)" />} />
             <Route path="patrols" element={<Placeholder title="🥾 Patrols (Member 2)" />} />
             <Route path="map" element={<Placeholder title="🗺️ Wildlife Map (Member 4)" />} />
             <Route path="conflicts" element={<Conflicts />} />
