@@ -12,6 +12,10 @@ const patrolSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    park: { 
+      type: String, 
+      default: 'Yala' 
+    },
     status: {
       type: String,
       enum: ['ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],

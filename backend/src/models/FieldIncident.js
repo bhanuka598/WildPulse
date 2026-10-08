@@ -31,6 +31,10 @@ const fieldIncidentSchema = new mongoose.Schema(
       latitude: { type: Number, required: true },
       longitude: { type: Number, required: true },
     },
+    park: { 
+      type: String, 
+      default: 'Yala' 
+    },
     images: [
       {
         type: String,
