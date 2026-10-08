@@ -1,47 +1,118 @@
 const WildlifeConflict = require('../models/WildlifeConflict');
 const Alert = require('../models/Alert');
+const FieldIncident = require('../models/FieldIncident');
+const Patrol = require('../models/Patrol');
 
 const getAnalyticsReport = async (req, res) => {
   try {
     const { category, park, startDate, endDate } = req.query;
 
-    // 1. Fetch REAL data from other members' modules
-    const realConflictCount = await WildlifeConflict.countDocuments();
-    const realAlertCount = await Alert.countDocuments();
-    
-    // We combine the real database counts for a true system-wide total
-    const totalIncidents = realConflictCount + realAlertCount;
+    let totalIncidents = 0;
+    let highRiskZones = 0;
+    let priorityAreas = [];
+    let hotspots = [];
 
-    // 2. Summary Statistics (Hybrid: Real + Mock)
+    // --- FILTER BY CATEGORY ---
+    if (category === 'Human-Wildlife Conflict Incidents') {
+      const conflicts = await WildlifeConflict.find().sort({ createdAt: -1 });
+      totalIncidents = conflicts.length;
+      highRiskZones = Math.ceil(totalIncidents / 2);
+
+      hotspots = conflicts.map((c) => ({
+        id: c._id,
+        lat: c.latitude || (c.location && c.location.latitude) || 6.3721,
+        lng: c.longitude || (c.location && c.location.longitude) || 81.5142,
+        intensity: c.severity === 'CRITICAL' ? 1.0 : 0.8,
+        type: c.conflictType
+      }));
+
+      priorityAreas = conflicts.slice(0, 5).map((c, i) => ({
+        id: c._id,
+        sector: `Sector ${String.fromCharCode(65 + i)}`,
+        trigger: c.conflictType,
+        total: 1,
+        risk: c.severity || 'HIGH',
+        action: c.status === 'REPORTED' ? 'Action Required' : 'Monitoring'
+      }));
+
+    } else if (category === 'Patrol Coverage & Sensor Uptime') {
+      const patrols = await Patrol.find().sort({ createdAt: -1 });
+      totalIncidents = patrols.length; // Overriding 'incidents' to mean 'patrols' for this view
+      highRiskZones = 0;
+
+      // Extract waypoints from patrols for the map
+      patrols.forEach(p => {
+        if (p.waypoints && p.waypoints.length > 0) {
+          p.waypoints.forEach(wp => {
+            hotspots.push({
+              id: wp._id || Math.random().toString(),
+              lat: wp.latitude,
+              lng: wp.longitude,
+              intensity: 0.5,
+              type: 'Ranger Waypoint'
+            });
+          });
+        }
+      });
+
+      priorityAreas = patrols.slice(0, 5).map((p, i) => ({
+        id: p._id,
+        sector: p.routeName,
+        trigger: 'Patrol Route',
+        total: p.distanceKm || 0,
+        risk: 'LOW',
+        action: p.status
+      }));
+
+    } else if (category === 'Poaching Hotspots by Location') {
+      const incidents = await FieldIncident.find().sort({ createdAt: -1 });
+      totalIncidents = incidents.length;
+      highRiskZones = Math.ceil(totalIncidents / 2);
+
+      hotspots = incidents.map((inc) => ({
+        id: inc._id,
+        lat: inc.location?.latitude || 6.3721,
+        lng: inc.location?.longitude || 81.5142,
+        intensity: inc.severity === 'CRITICAL' ? 1.0 : 0.8,
+        type: inc.incidentType
+      }));
+
+      priorityAreas = incidents.slice(0, 5).map((inc, i) => ({
+        id: inc._id,
+        sector: `Sector ${String.fromCharCode(65 + i)}`,
+        trigger: inc.incidentType,
+        total: 1,
+        risk: inc.severity,
+        action: inc.status === 'REPORTED' ? 'Action Required' : 'Monitoring'
+      }));
+
+    } else {
+      // Default / Wildlife Population
+      totalIncidents = 0;
+      priorityAreas = [{ id: 1, sector: 'Sector A', trigger: 'Waiting for Data', total: 0, risk: 'Low', action: 'None' }];
+      hotspots = [{ id: 'mock', lat: 6.3721, lng: 81.5142, intensity: 0.1, type: 'No Data Yet' }];
+    }
+
+    // Common Fallbacks for empty maps
+    if (hotspots.length === 0) {
+      hotspots = [{ id: 'mock', lat: 6.3721, lng: 81.5142, intensity: 0.1, type: 'No Data Yet' }];
+    }
+    if (priorityAreas.length === 0) {
+      priorityAreas = [{ id: 1, sector: 'Sector A', trigger: 'Waiting for Data', total: 0, risk: 'Low', action: 'None' }];
+    }
+
     const summary = {
-      totalIncidents: totalIncidents > 0 ? totalIncidents : Math.floor(Math.random() * 50) + 10, // Fallback if DB is empty
-      highRiskZones: Math.floor(Math.random() * 5) + 1, // Mocked ML prediction
-      meanInterceptionDelay: `${Math.floor(Math.random() * 30) + 20} mins`, // Mocked IoT tracking
+      totalIncidents, 
+      highRiskZones, 
+      meanInterceptionDelay: `${Math.floor(Math.random() * 30) + 20} mins`,
       syncStatus: "Online & Synced",
     };
 
-    // 3. Weekly Trend Data (Mocking 4 weeks for the chart)
     const weeklyTrend = [
-      { name: 'Week 1', current: Math.floor(Math.random() * 20), previous: Math.floor(Math.random() * 20) },
-      { name: 'Week 2', current: Math.floor(Math.random() * 20), previous: Math.floor(Math.random() * 20) },
-      { name: 'Week 3', current: Math.floor(Math.random() * 20), previous: Math.floor(Math.random() * 20) },
-      { name: 'Week 4', current: totalIncidents > 0 ? totalIncidents : Math.floor(Math.random() * 20), previous: Math.floor(Math.random() * 20) },
-    ];
-
-    // 4. Priority Areas Table Data (Mocked ML Classification)
-    const priorityAreas = [
-      { id: 1, sector: 'Sector A', trigger: 'Wire Snares', total: 18, risk: 'High', action: 'Action' },
-      { id: 2, sector: 'Sector B', trigger: 'Gunshots', total: 14, risk: 'High', action: 'Action' },
-      { id: 3, sector: 'Sector C', trigger: 'Footprints', total: 10, risk: 'Medium', action: 'Monitor' },
-    ];
-
-    // 5. Hotspot Map Coordinates (Mocked IoT GPS coordinates)
-    const baseLat = 6.3721;
-    const baseLng = 81.5142;
-    const hotspots = [
-      { id: 1, lat: baseLat + 0.01, lng: baseLng - 0.02, intensity: 0.9, type: 'Snare' },
-      { id: 2, lat: baseLat - 0.02, lng: baseLng + 0.01, intensity: 0.7, type: 'Sighting' },
-      { id: 3, lat: baseLat + 0.03, lng: baseLng + 0.03, intensity: 0.5, type: 'Camp' },
+      { name: 'Week 1', current: Math.floor(Math.random() * 10), previous: Math.floor(Math.random() * 10) },
+      { name: 'Week 2', current: Math.floor(Math.random() * 10), previous: Math.floor(Math.random() * 10) },
+      { name: 'Week 3', current: Math.floor(Math.random() * 10), previous: Math.floor(Math.random() * 10) },
+      { name: 'Week 4', current: totalIncidents, previous: Math.floor(Math.random() * 10) },
     ];
 
     res.json({
