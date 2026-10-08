@@ -28,6 +28,12 @@ exports.createConflict = async (req, res, next) => {
       }
     }
 
+    // Broadcast real-time alert via Socket.io
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('new_conflict', conflict);
+    }
+
     res.status(201).json({ success: true, conflict, data: conflict });
   } catch (err) { next(err); }
 };

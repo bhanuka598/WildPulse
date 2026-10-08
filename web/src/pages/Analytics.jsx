@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/client';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { io } from 'socket.io-client';
 import {
   LineChart,
   Line,
@@ -25,7 +26,7 @@ export default function Analytics() {
   const [endDate, setEndDate] = useState('');
 
   const handleGenerate = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     try {
       const res = await api.get('/analytics/report', {
@@ -42,6 +43,25 @@ export default function Analytics() {
       setLoading(false);
     }
   };
+
+  // Socket auto-refresh logic
+  useEffect(() => {
+    if (step !== 2) return; // Only listen/auto-refresh if dashboard is currently visible
+
+    const socket = io('http://localhost:5000', { transports: ['websocket'] });
+
+    const refreshData = () => {
+      console.log('Real-time event received. Refreshing analytics data...');
+      handleGenerate(); 
+    };
+
+    socket.on('new_field_incident', refreshData);
+    socket.on('new_conflict', refreshData);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [step, category, park, startDate, endDate]);
 
   const handleExport = () => {
     // In a real app, we'd use jsPDF or html2canvas here.
