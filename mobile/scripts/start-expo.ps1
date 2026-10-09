@@ -12,7 +12,12 @@ $ip = (Get-NetIPAddress -AddressFamily IPv4 |
   Where-Object { $_.IPAddress -like '192.168.*' -or $_.IPAddress -like '10.*' } |
   Select-Object -First 1).IPAddress
 
-if ($ip) {
+# A LAN hostname during --tunnel makes Expo Go download the bundle from
+# 192.168.x.x. That fails on a Public Wi-Fi profile with
+# "Failed to download remote update".
+if ($Tunnel) {
+  Remove-Item Env:REACT_NATIVE_PACKAGER_HOSTNAME -ErrorAction SilentlyContinue
+} elseif ($ip) {
   $env:REACT_NATIVE_PACKAGER_HOSTNAME = $ip
   Write-Host "Packager hostname: $ip" -ForegroundColor Cyan
 } else {
@@ -20,7 +25,11 @@ if ($ip) {
 }
 
 if ($Tunnel) {
+  # ngrok on exp.direct answers only on HTTPS. Expo Go turns exp:// into http://
+  # and the download hangs. exps:// makes Expo Go use https://.
+  & node (Join-Path $PSScriptRoot 'patch-tunnel-https.js')
   Write-Host 'Starting with tunnel (bypasses firewall, needs internet)...' -ForegroundColor Green
+  Write-Host 'Scan the exps:// QR. An exp:// URL will fail on this tunnel.' -ForegroundColor Yellow
   npx expo start --tunnel --port $Port
 } else {
   $profile = Get-NetConnectionProfile -ErrorAction SilentlyContinue | Select-Object -First 1
