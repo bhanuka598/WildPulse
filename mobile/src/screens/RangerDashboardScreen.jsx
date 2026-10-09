@@ -224,6 +224,12 @@ export default function RangerDashboardScreen({ navigation }) {
         >
           <Text style={styles.dispatchedIncidentsText}>📋 View Dispatched Community Incidents →</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.dispatchedIncidentsBtn}
+          onPress={() => navigation.navigate('WildlifeHome')}
+        >
+          <Text style={styles.dispatchedIncidentsText}>Wildlife alerts and dispatches</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Patrols History List */}

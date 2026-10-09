@@ -10,20 +10,16 @@ import FieldIncidents from './pages/FieldIncidents';
 import Conflicts from './pages/Conflicts';
 import CommunityReport from './pages/CommunityReport';
 import Analytics from './pages/Analytics';
+import MonitoringDashboard from './pages/wildlife/MonitoringDashboard';
+import AlertCenter from './pages/wildlife/AlertCenter';
+import AlertDetail from './pages/wildlife/AlertDetail';
+import SensorMonitoring from './pages/wildlife/SensorMonitoring';
+import DispatchHistory from './pages/wildlife/DispatchHistory';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
   return user ? children : <Navigate to="/login" />;
 };
-
-const Placeholder = ({ title }) => (
-  <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
-    <h2 className="text-xl font-bold text-stone-800">{title}</h2>
-    <p className="text-sm text-stone-500 mt-2">
-      This module is being developed by its respective team member.
-    </p>
-  </div>
-);
 
 export default function App() {
   return (
@@ -39,9 +35,17 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="incidents" element={<FieldIncidents />} />
             <Route path="patrols" element={<PatrolMonitoring />} />
-            <Route path="map" element={<Placeholder title="🗺️ Wildlife Map (Member 4)" />} />
+            <Route path="map" element={<MonitoringDashboard />} />
+            <Route path="wildlife-monitoring" element={<MonitoringDashboard />} />
             <Route path="conflicts" element={<Conflicts />} />
-            <Route path="alerts" element={<Placeholder title="🔔 Alerts (Member 4)" />} />
+            <Route path="alerts" element={<AlertCenter />} />
+            <Route path="alerts/:id" element={<AlertDetail />} />
+            <Route path="wildlife-monitoring/alerts" element={<AlertCenter />} />
+            <Route path="wildlife-monitoring/alerts/:id" element={<AlertDetail />} />
+            <Route path="sensors" element={<SensorMonitoring />} />
+            <Route path="wildlife-monitoring/sensors" element={<SensorMonitoring />} />
+            <Route path="dispatches" element={<DispatchHistory />} />
+            <Route path="wildlife-monitoring/dispatches" element={<DispatchHistory />} />
             <Route path="analytics" element={<Analytics />} />
           </Route>
         </Routes>
