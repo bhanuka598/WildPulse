@@ -128,18 +128,25 @@ export default function AnalyticsScreen({ navigation }) {
         ) : reportData ? (
           <View style={styles.reportSection}>
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Total Incidents</Text>
-              <Text style={styles.summaryValue}>{reportData.summary.totalIncidents}</Text>
+              <Text style={styles.summaryTitle}>Total Records</Text>
+              <View style={{flexDirection: 'row', alignItems: 'baseline'}}>
+                <Text style={styles.summaryValue}>{reportData.summary.totalIncidents}</Text>
+                {reportData.summary.totalTrend !== 0 && (
+                  <Text style={{marginLeft: 10, fontSize: 16, fontWeight: 'bold', color: reportData.summary.totalTrend > 0 ? '#ef4444' : '#10b981'}}>
+                    {reportData.summary.totalTrend > 0 ? '▲ +' : '▼ '}{reportData.summary.totalTrend}%
+                  </Text>
+                )}
+              </View>
             </View>
 
             <View style={styles.metricsRow}>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Resolved</Text>
-                <Text style={styles.metricVal}>{reportData.summary.resolvedIncidents}</Text>
+                <Text style={styles.metricLabel}>Critical Severity</Text>
+                <Text style={styles.metricVal}>{reportData.summary.criticalIncidents}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Critical</Text>
-                <Text style={styles.metricVal}>{reportData.summary.criticalIncidents}</Text>
+                <Text style={styles.metricLabel}>Active Regions</Text>
+                <Text style={styles.metricVal}>{reportData.summary.activeRegions}</Text>
               </View>
             </View>
 

@@ -230,6 +230,14 @@ export default function RangerDashboardScreen({ navigation }) {
         >
           <Text style={styles.dispatchedIncidentsText}>Wildlife alerts and dispatches</Text>
         </TouchableOpacity>
+
+        {/* View Analytics Report Button */}
+        <TouchableOpacity
+          style={styles.dispatchedIncidentsBtn}
+          onPress={() => navigation.navigate('Analytics')}
+        >
+          <Text style={styles.dispatchedIncidentsText}>📈 View Analytics & Reports</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Patrols History List */}

@@ -8,28 +8,61 @@ const getAnalyticsReport = async (req, res) => {
     const { category, park, startDate, endDate } = req.query;
 
     let totalIncidents = 0;
-    let highRiskZones = 0;
+    let criticalIncidents = 0;
+    let totalTrend = 0;
+    let criticalTrend = 0;
+    let activeRegions = 1;
     let priorityAreas = [];
     let hotspots = [];
 
+    const getTrend = async (Model, currentQuery, baseQuery) => {
+      if (!startDate || !endDate) return 0;
+      const currentStart = new Date(startDate);
+      const currentEnd = new Date(endDate);
+      const durationMs = currentEnd - currentStart;
+      
+      const previousEnd = new Date(currentStart.getTime() - 1);
+      const previousStart = new Date(previousEnd.getTime() - durationMs);
+      
+      const prevQuery = { ...baseQuery, createdAt: { $gte: previousStart, $lte: previousEnd } };
+      
+      const currentCount = await Model.countDocuments(currentQuery);
+      const prevCount = await Model.countDocuments(prevQuery);
+      
+      if (prevCount === 0) return currentCount > 0 ? 100 : 0;
+      return Math.round(((currentCount - prevCount) / prevCount) * 100);
+    };
+
+    let query = {};
+    if (park && park !== 'All Regions') {
+      if (park === 'Other') {
+        query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
+      } else {
+        query.park = park;
+      }
+    }
+    const baseQuery = { ...query }; // without date filter
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
     // --- FILTER BY CATEGORY ---
     if (category === 'Human-Wildlife Conflict Incidents') {
-      let query = {};
-      if (park && park !== 'All Regions') {
-        if (park === 'Other') {
-          query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
-        } else {
-          query.park = park;
-        }
-      }
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate);
-        if (endDate) query.createdAt.$lte = new Date(endDate);
-      }
       const conflicts = await WildlifeConflict.find(query).sort({ createdAt: -1 });
       totalIncidents = conflicts.length;
-      highRiskZones = Math.ceil(totalIncidents / 2);
+      
+      const criticalQuery = { ...query, severity: { $in: ['CRITICAL', 'HIGH'] } };
+      const criticalBaseQuery = { ...baseQuery, severity: { $in: ['CRITICAL', 'HIGH'] } };
+      criticalIncidents = await WildlifeConflict.countDocuments(criticalQuery);
+      
+      totalTrend = await getTrend(WildlifeConflict, query, baseQuery);
+      criticalTrend = await getTrend(WildlifeConflict, criticalQuery, criticalBaseQuery);
+      
+      const distinctParks = await WildlifeConflict.distinct('park', query);
+      activeRegions = distinctParks.length || 1;
 
       hotspots = conflicts.map((c) => ({
         id: c._id,
@@ -49,24 +82,16 @@ const getAnalyticsReport = async (req, res) => {
       }));
 
     } else if (category === 'Patrol Coverage & Sensor Uptime') {
-      let query = {};
-      if (park && park !== 'All Regions') {
-        if (park === 'Other') {
-          query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
-        } else {
-          query.park = park;
-        }
-      }
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate);
-        if (endDate) query.createdAt.$lte = new Date(endDate);
-      }
       const patrols = await Patrol.find(query).sort({ createdAt: -1 });
-      totalIncidents = patrols.length; // Overriding 'incidents' to mean 'patrols' for this view
-      highRiskZones = 0;
+      totalIncidents = patrols.length; // Overriding 'incidents' to mean 'patrols'
+      
+      criticalIncidents = 0; // Not applicable
+      totalTrend = await getTrend(Patrol, query, baseQuery);
+      criticalTrend = 0;
 
-      // Extract waypoints from patrols for the map
+      const distinctParks = await Patrol.distinct('park', query);
+      activeRegions = distinctParks.length || 1;
+
       patrols.forEach(p => {
         if (p.waypoints && p.waypoints.length > 0) {
           p.waypoints.forEach(wp => {
@@ -91,22 +116,18 @@ const getAnalyticsReport = async (req, res) => {
       }));
 
     } else if (category === 'Poaching Hotspots by Location') {
-      let query = {};
-      if (park && park !== 'All Regions') {
-        if (park === 'Other') {
-          query.park = { $nin: ['Yala', 'Wilpattu', 'Udawalawe', 'Minneriya'] };
-        } else {
-          query.park = park;
-        }
-      }
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate);
-        if (endDate) query.createdAt.$lte = new Date(endDate);
-      }
       const incidents = await FieldIncident.find(query).sort({ createdAt: -1 });
       totalIncidents = incidents.length;
-      highRiskZones = Math.ceil(totalIncidents / 2);
+      
+      const criticalQuery = { ...query, severity: { $in: ['CRITICAL', 'HIGH'] } };
+      const criticalBaseQuery = { ...baseQuery, severity: { $in: ['CRITICAL', 'HIGH'] } };
+      criticalIncidents = await FieldIncident.countDocuments(criticalQuery);
+      
+      totalTrend = await getTrend(FieldIncident, query, baseQuery);
+      criticalTrend = await getTrend(FieldIncident, criticalQuery, criticalBaseQuery);
+      
+      const distinctParks = await FieldIncident.distinct('park', query);
+      activeRegions = distinctParks.length || 1;
 
       hotspots = incidents.map((inc) => ({
         id: inc._id,
@@ -126,13 +147,12 @@ const getAnalyticsReport = async (req, res) => {
       }));
 
     } else {
-      // Default / Wildlife Population
       totalIncidents = 0;
+      criticalIncidents = 0;
       priorityAreas = [{ id: 1, sector: 'Sector A', trigger: 'Waiting for Data', total: 0, risk: 'Low', action: 'None' }];
       hotspots = [{ id: 'mock', lat: 6.3721, lng: 81.5142, intensity: 0.1, type: 'No Data Yet' }];
     }
 
-    // Common Fallbacks for empty maps
     if (hotspots.length === 0) {
       hotspots = [{ id: 'mock', lat: 6.3721, lng: 81.5142, intensity: 0.1, type: 'No Data Yet' }];
     }
@@ -142,8 +162,10 @@ const getAnalyticsReport = async (req, res) => {
 
     const summary = {
       totalIncidents, 
-      highRiskZones, 
-      meanInterceptionDelay: `${Math.floor(Math.random() * 30) + 20} mins`,
+      totalTrend,
+      criticalIncidents,
+      criticalTrend,
+      activeRegions,
       syncStatus: "Online & Synced",
     };
 

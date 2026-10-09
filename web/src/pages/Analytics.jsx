@@ -233,28 +233,36 @@ export default function Analytics() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
-          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Total Incidents</p>
+          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Total Records</p>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-black text-stone-900">{reportData?.summary.totalIncidents}</span>
-            {comparePrevious && <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">▲ +18%</span>}
+            {comparePrevious && reportData?.summary.totalTrend !== 0 && (
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${reportData?.summary.totalTrend > 0 ? 'text-red-600 bg-red-100' : 'text-emerald-600 bg-emerald-100'}`}>
+                {reportData?.summary.totalTrend > 0 ? '▲ +' : '▼ '}{reportData?.summary.totalTrend}%
+              </span>
+            )}
           </div>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
-          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">High-Risk Zones</p>
+          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Critical Severity</p>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-stone-900">{reportData?.summary.highRiskZones}</span>
-            <span className="text-xs text-stone-500 font-medium">Zones identified</span>
+            <span className="text-3xl font-black text-stone-900">{reportData?.summary.criticalIncidents}</span>
+            {comparePrevious && reportData?.summary.criticalTrend !== 0 && (
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${reportData?.summary.criticalTrend > 0 ? 'text-red-600 bg-red-100' : 'text-emerald-600 bg-emerald-100'}`}>
+                {reportData?.summary.criticalTrend > 0 ? '▲ +' : '▼ '}{reportData?.summary.criticalTrend}%
+              </span>
+            )}
           </div>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
-          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Mean Interception</p>
+          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Active Regions</p>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-stone-900">{reportData?.summary.meanInterceptionDelay}</span>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">▼ -6 min</span>
+            <span className="text-3xl font-black text-stone-900">{reportData?.summary.activeRegions}</span>
+            <span className="text-xs text-stone-500 font-medium">Parks involved</span>
           </div>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
-          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Field Telemetry</p>
+          <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">System Status</p>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="flex h-3 w-3 relative mr-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
