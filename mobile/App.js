@@ -13,6 +13,7 @@ import ActivePatrolScreen from './src/screens/ActivePatrolScreen';
 import ReportIncidentScreen from './src/screens/ReportIncidentScreen';
 import RangerAssignmentsScreen from './src/screens/RangerAssignmentsScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
+import WildlifeHomeScreen from './src/screens/wildlife/WildlifeHomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,6 +47,7 @@ function NavigationRoot() {
               <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
               <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
               <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+              <Stack.Screen name="WildlifeHome" component={WildlifeHomeScreen} />
             </>
           ) : (
             <>
@@ -54,6 +56,7 @@ function NavigationRoot() {
               <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
               <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
               <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+              <Stack.Screen name="WildlifeHome" component={WildlifeHomeScreen} />
             </>
           )
         ) : (
