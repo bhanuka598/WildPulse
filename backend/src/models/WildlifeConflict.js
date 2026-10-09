@@ -22,6 +22,10 @@ const conflictSchema = new mongoose.Schema(
     description: { type: String, required: true },
     latitude: { type: Number, required: true },
     longitude: { type: Number, required: true },
+    park: { 
+      type: String, 
+      default: 'Yala' 
+    },
     villageArea: { type: String, default: '' },
     nearbyLandmark: { type: String, default: '' },
     animalSpecies: { type: String, default: 'Elephant' },

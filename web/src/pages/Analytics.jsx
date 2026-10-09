@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/client';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { io } from 'socket.io-client';
 import {
   LineChart,
   Line,
@@ -20,12 +21,13 @@ export default function Analytics() {
 
   // Form state
   const [category, setCategory] = useState('Poaching Hotspots');
-  const [park, setPark] = useState('Serengeti National Park - Sector A');
+  const [park, setPark] = useState('All Regions');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [comparePrevious, setComparePrevious] = useState(true);
 
   const handleGenerate = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     try {
       const res = await api.get('/analytics/report', {
@@ -43,18 +45,32 @@ export default function Analytics() {
     }
   };
 
+  // Socket auto-refresh logic
+  useEffect(() => {
+    if (step !== 2) return; // Only listen/auto-refresh if dashboard is currently visible
+
+    const socket = io('http://localhost:5000', { transports: ['websocket'] });
+
+    const refreshData = () => {
+      console.log('Real-time event received. Refreshing analytics data...');
+      handleGenerate(); 
+    };
+
+    socket.on('new_field_incident', refreshData);
+    socket.on('new_conflict', refreshData);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [step, category, park, startDate, endDate]);
+
   const handleExport = () => {
-    // In a real app, we'd use jsPDF or html2canvas here.
-    // For the assignment, a simple alert or downloading a mock blob is sufficient.
-    const csvContent = "data:text/csv;charset=utf-8,Incident ID,Type,Lat,Lng\n1,Snare,6.38,81.51";
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "wildpulse_analytics_report.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    alert('Report exported successfully. Logged in audit trail.');
+    // We use the browser's native print API (Save as PDF) for a zero-dependency,
+    // high-quality, text-selectable PDF export. Tailwind 'print:' classes handle the styling.
+    window.print();
+    
+    // Optional: Log it to audit trail if needed
+    // alert('Report exported successfully. Logged in audit trail.');
   };
 
   if (step === 1) {
@@ -117,9 +133,12 @@ export default function Analytics() {
                     onChange={(e) => setPark(e.target.value)}
                     className="w-full text-sm border-stone-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                   >
-                    <option>Serengeti National Park - Sector A</option>
-                    <option>Yala National Park - Sector B</option>
-                    <option>Kruger National Park - Sector C</option>
+                    <option value="All Regions">All Regions (National View)</option>
+                    <option value="Yala">Yala National Park</option>
+                    <option value="Wilpattu">Wilpattu National Park</option>
+                    <option value="Udawalawe">Udawalawe National Park</option>
+                    <option value="Minneriya">Minneriya National Park</option>
+                    <option value="Other">Other Region</option>
                   </select>
                 </div>
                 
@@ -148,7 +167,12 @@ export default function Analytics() {
 
                 <div className="pt-4 border-t border-stone-200">
                   <label className="flex items-center text-sm text-stone-700">
-                    <input type="checkbox" className="rounded text-emerald-600 focus:ring-emerald-500 mr-2" defaultChecked />
+                    <input 
+                      type="checkbox" 
+                      className="rounded text-emerald-600 focus:ring-emerald-500 mr-2" 
+                      checked={comparePrevious}
+                      onChange={(e) => setComparePrevious(e.target.checked)}
+                    />
                     Compare with previous month
                   </label>
                 </div>
@@ -172,7 +196,13 @@ export default function Analytics() {
 
   // Step 2: The Generated Report Dashboard
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-amber-50/40 p-4 -m-4 print:m-0 print:p-0 print:bg-white print:w-full">
+      {/* Print-Only Title (Hidden on screen) */}
+      <div className="hidden print:block mb-8 text-center border-b pb-4">
+        <h1 className="text-3xl font-bold text-stone-800">WildPulse Analytics Report</h1>
+        <p className="text-stone-500 mt-2">Generated on {new Date().toLocaleDateString()}</p>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
         <div>
@@ -184,7 +214,7 @@ export default function Analytics() {
             {reportData?.parameters.startDate} to {reportData?.parameters.endDate}
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex gap-3">
+        <div className="mt-4 sm:mt-0 flex gap-3 print:hidden">
           <button
             onClick={() => setStep(1)}
             className="px-4 py-2 text-sm font-semibold text-stone-600 bg-stone-100 rounded-xl hover:bg-stone-200 transition"
@@ -206,7 +236,7 @@ export default function Analytics() {
           <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Total Incidents</p>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-black text-stone-900">{reportData?.summary.totalIncidents}</span>
-            <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">▲ +18%</span>
+            {comparePrevious && <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">▲ +18%</span>}
           </div>
         </div>
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
@@ -282,7 +312,7 @@ export default function Analytics() {
                   <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', marginTop: '10px' }} />
                   <Line type="monotone" name="Current Period" dataKey="current" stroke="#047857" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" name="Previous Period" dataKey="previous" stroke="#d6d3d1" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                  {comparePrevious && <Line type="monotone" name="Previous Period" dataKey="previous" stroke="#d6d3d1" strokeWidth={2} strokeDasharray="5 5" dot={false} />}
                 </LineChart>
               </ResponsiveContainer>
             </div>
