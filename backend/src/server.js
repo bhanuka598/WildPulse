@@ -13,6 +13,8 @@ const patrolRoutes = require('./routes/patrolRoutes');
 const fieldIncidentRoutes = require('./routes/fieldIncidentRoutes');
 const conflictRoutes = require('./routes/conflictRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const wildlifeRoutes = require('./routes/wildlifeRoutes');
+const { registerWildlifeSocket } = require('./socket/wildlifeSocket');
 
 connectDB();
 
@@ -28,6 +30,7 @@ const io = new Server(server, {
 });
 
 app.set('io', io);
+registerWildlifeSocket(io);
 
 io.on('connection', (socket) => {
   console.log(`⚡ Client connected to WildPulse Socket: ${socket.id}`);
@@ -48,6 +51,7 @@ app.use('/api/patrols', patrolRoutes);
 app.use('/api/field-incidents', fieldIncidentRoutes);
 app.use('/api/conflicts', conflictRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/wildlife', wildlifeRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
