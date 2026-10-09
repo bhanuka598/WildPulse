@@ -39,7 +39,7 @@ export default function AnalyticsScreen({ navigation }) {
       const { data } = await api.get('/analytics/report', {
         params: { category, park, startDate, endDate },
       });
-      setReportData(data);
+      setReportData(data.data);
     } catch (err) {
       console.error('Report error:', err);
       Alert.alert('Error', 'Failed to generate report. Check connection.');
