@@ -224,13 +224,11 @@ export default function RangerDashboardScreen({ navigation }) {
         >
           <Text style={styles.dispatchedIncidentsText}>📋 View Dispatched Community Incidents →</Text>
         </TouchableOpacity>
-
-        {/* View Analytics Button */}
         <TouchableOpacity
-          style={[styles.dispatchedIncidentsBtn, { borderColor: '#059669', backgroundColor: '#064e3b' }]}
-          onPress={() => navigation.navigate('Analytics')}
+          style={styles.dispatchedIncidentsBtn}
+          onPress={() => navigation.navigate('WildlifeHome')}
         >
-          <Text style={[styles.dispatchedIncidentsText, { color: '#ffffff' }]}>📊 View Conservation Analytics & Reports</Text>
+          <Text style={styles.dispatchedIncidentsText}>Wildlife alerts and dispatches</Text>
         </TouchableOpacity>
       </View>
 

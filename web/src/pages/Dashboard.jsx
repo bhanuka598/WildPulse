@@ -20,7 +20,7 @@ export default function Dashboard() {
       const [incidents, patrols, alerts, conflicts] = await Promise.all([
         fetchCount('/incidents'),
         fetchCount('/patrols'),
-        fetchCount('/alerts?unread=true'),
+        fetchCount('/wildlife/alerts?status=NEW'),
         fetchCount('/conflicts'),
       ]);
 

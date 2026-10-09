@@ -4,6 +4,7 @@ import api from '../api/client';
 
 export const OFFLINE_INCIDENTS_KEY = '@offline_field_incidents';
 export const OFFLINE_WAYPOINTS_KEY = '@offline_patrol_waypoints';
+export const WILDLIFE_QUEUE_KEY = '@offline_wildlife_ops';
 
 class SyncService {
   constructor() {
@@ -170,12 +171,77 @@ class SyncService {
         await AsyncStorage.removeItem(OFFLINE_INCIDENTS_KEY);
         this.notifyListeners({ type: 'SYNC_SUCCESS', count: queuedIncidents.length });
       }
+      await this.syncWildlifeOps();
+      return this.getWildlifeOps();
     } catch (err) {
       console.warn('Sync failed (will retry when online):', err.message);
       this.notifyListeners({ type: 'SYNC_FAILED', error: err.message });
     } finally {
       this.isSyncing = false;
     }
+  }
+
+  async getWildlifeOps() {
+    try {
+      const data = await AsyncStorage.getItem(WILDLIFE_QUEUE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async enqueueWildlifeOp(op) {
+    const existing = await this.getWildlifeOps();
+    if (existing.some((row) => row.operationId === op.operationId)) return op;
+    const payload = { ...op, pending: true, createdAt: new Date().toISOString() };
+    existing.push(payload);
+    await AsyncStorage.setItem(WILDLIFE_QUEUE_KEY, JSON.stringify(existing));
+    this.notifyListeners({ type: 'WILDLIFE_QUEUED', count: existing.length });
+    return payload;
+  }
+
+  async syncWildlifeOps() {
+    const ops = await this.getWildlifeOps();
+    if (ops.length === 0) return { synced: 0, pending: 0 };
+    const online = await this.isConnected();
+    if (!online) {
+      this.notifyListeners({ type: 'WILDLIFE_PENDING', count: ops.length });
+      return { synced: 0, pending: ops.length };
+    }
+    const remaining = [];
+    let synced = 0;
+    for (const op of ops) {
+      try {
+        if (op.action === 'accept') await api.patch(`/wildlife/dispatches/${op.dispatchId}/accept`, { note: op.note || '' });
+        else if (op.action === 'start') await api.patch(`/wildlife/dispatches/${op.dispatchId}/start`, { note: op.note || '' });
+        else if (op.action === 'progress') await api.patch(`/wildlife/dispatches/${op.dispatchId}/progress`, { note: op.note || '' });
+        else if (op.action === 'complete') {
+          if (op.photoUri) {
+            const form = new FormData();
+            form.append('note', op.note || '');
+            form.append('outcome', op.outcome || '');
+            form.append('photo', { uri: op.photoUri, name: 'response.jpg', type: 'image/jpeg' });
+            await api.patch(`/wildlife/dispatches/${op.dispatchId}/complete`, form, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+          } else {
+            await api.patch(`/wildlife/dispatches/${op.dispatchId}/complete`, { note: op.note || '', outcome: op.outcome });
+          }
+        } else {
+          throw new Error('Unknown queued action');
+        }
+        synced += 1;
+      } catch (err) {
+        if (!err.response) {
+          remaining.push(op, ...ops.slice(ops.indexOf(op) + 1));
+          break;
+        }
+        remaining.push({ ...op, lastError: err.response?.data?.message || err.message });
+      }
+    }
+    await AsyncStorage.setItem(WILDLIFE_QUEUE_KEY, JSON.stringify(remaining));
+    this.notifyListeners({ type: remaining.length ? 'WILDLIFE_PENDING' : 'SYNC_SUCCESS', count: remaining.length, synced });
+    return { synced, pending: remaining.length };
   }
 }
 

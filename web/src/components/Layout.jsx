@@ -8,8 +8,19 @@ const links = [
   { to: '/incidents', label: 'Field Incidents', icon: '🚨' },
   { to: '/map', label: 'Wildlife & Sensor Map', icon: '🛰️' },
   { to: '/alerts', label: 'Perimeter Alerts', icon: '🔔' },
+  { to: '/sensors', label: 'Sensor Monitoring', icon: '📡' },
+  { to: '/dispatches', label: 'Dispatch History', icon: '🚁' },
   { to: '/analytics', label: 'Conservation Analytics', icon: '📈' },
 ];
+
+function isActive(pathname, to) {
+  if (to === '/') return pathname === '/';
+  if (to === '/map') return pathname === '/map' || pathname === '/wildlife-monitoring';
+  if (to === '/alerts') return pathname === '/alerts' || pathname.startsWith('/alerts/') || pathname.startsWith('/wildlife-monitoring/alerts');
+  if (to === '/sensors') return pathname === '/sensors' || pathname.startsWith('/wildlife-monitoring/sensors');
+  if (to === '/dispatches') return pathname === '/dispatches' || pathname.startsWith('/wildlife-monitoring/dispatches');
+  return pathname === to;
+}
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -39,7 +50,7 @@ export default function Layout() {
               Field Operations
             </p>
             {links.map((l) => {
-              const active = location.pathname === l.to;
+              const active = isActive(location.pathname, l.to);
               return (
                 <Link
                   key={l.to}
