@@ -19,7 +19,7 @@ const CATEGORIES = [
 const PARKS = ['All Regions', 'Yala', 'Wilpattu', 'Udawalawe', 'Minneriya', 'Other'];
 
 export default function AnalyticsScreen({ navigation }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -76,11 +76,13 @@ export default function AnalyticsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.canGoBack() ? navigation.goBack() : null}>
           <Text style={styles.backBtnText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Analytics & Reports</Text>
-        <View style={{ width: 60 }} /> {/* Placeholder for balance */}
+        <TouchableOpacity onPress={logout} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 8 }}>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Logout</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
@@ -128,18 +130,25 @@ export default function AnalyticsScreen({ navigation }) {
         ) : reportData ? (
           <View style={styles.reportSection}>
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Total Incidents</Text>
-              <Text style={styles.summaryValue}>{reportData.summary.totalIncidents}</Text>
+              <Text style={styles.summaryTitle}>Total Records</Text>
+              <View style={{flexDirection: 'row', alignItems: 'baseline'}}>
+                <Text style={styles.summaryValue}>{reportData.summary.totalIncidents}</Text>
+                {reportData.summary.totalTrend !== 0 && (
+                  <Text style={{marginLeft: 10, fontSize: 16, fontWeight: 'bold', color: reportData.summary.totalTrend > 0 ? '#ef4444' : '#10b981'}}>
+                    {reportData.summary.totalTrend > 0 ? '▲ +' : '▼ '}{reportData.summary.totalTrend}%
+                  </Text>
+                )}
+              </View>
             </View>
 
             <View style={styles.metricsRow}>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Resolved</Text>
-                <Text style={styles.metricVal}>{reportData.summary.resolvedIncidents}</Text>
+                <Text style={styles.metricLabel}>Critical Severity</Text>
+                <Text style={styles.metricVal}>{reportData.summary.criticalIncidents}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Critical</Text>
-                <Text style={styles.metricVal}>{reportData.summary.criticalIncidents}</Text>
+                <Text style={styles.metricLabel}>Active Regions</Text>
+                <Text style={styles.metricVal}>{reportData.summary.activeRegions}</Text>
               </View>
             </View>
 

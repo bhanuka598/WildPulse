@@ -12,6 +12,8 @@ import RangerDashboardScreen from './src/screens/RangerDashboardScreen';
 import ActivePatrolScreen from './src/screens/ActivePatrolScreen';
 import ReportIncidentScreen from './src/screens/ReportIncidentScreen';
 import RangerAssignmentsScreen from './src/screens/RangerAssignmentsScreen';
+import AnalyticsScreen from './src/screens/AnalyticsScreen';
+import WildlifeHomeScreen from './src/screens/wildlife/WildlifeHomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,12 +40,25 @@ function NavigationRoot() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <>
-            <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
-            <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
-            <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
-            <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
-          </>
+          user.role === 'PARK_MANAGER' ? (
+            <>
+              <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+              <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
+              <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
+              <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
+              <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+              <Stack.Screen name="WildlifeHome" component={WildlifeHomeScreen} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
+              <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
+              <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
+              <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+              <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+              <Stack.Screen name="WildlifeHome" component={WildlifeHomeScreen} />
+            </>
+          )
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
