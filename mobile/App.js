@@ -39,13 +39,23 @@ function NavigationRoot() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <>
-            <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
-            <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
-            <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
-            <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
-            <Stack.Screen name="Analytics" component={AnalyticsScreen} />
-          </>
+          user.role === 'PARK_MANAGER' ? (
+            <>
+              <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+              <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
+              <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
+              <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
+              <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="RangerDashboard" component={RangerDashboardScreen} />
+              <Stack.Screen name="ActivePatrol" component={ActivePatrolScreen} />
+              <Stack.Screen name="ReportIncident" component={ReportIncidentScreen} />
+              <Stack.Screen name="Assignments" component={RangerAssignmentsScreen} />
+              <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+            </>
+          )
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
