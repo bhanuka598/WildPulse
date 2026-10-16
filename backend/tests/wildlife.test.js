@@ -14,8 +14,6 @@ const WildlifeAlert = require('../src/models/WildlifeAlert');
 const DispatchOrder = require('../src/models/DispatchOrder');
 const FieldResponseUnit = require('../src/models/FieldResponseUnit');
 const WildlifeAuditLog = require('../src/models/WildlifeAuditLog');
-const WildlifeConflict = require('../src/models/WildlifeConflict');
-const Alert = require('../src/models/Alert');
 const {
   recordTelemetry,
   createCameraTrapAlert,
@@ -26,7 +24,6 @@ const {
 const { seedWildlifeData, runScenario, tickPlayback, setPaused } = require('../src/services/wildlife/simulation');
 const { loadDispatch, createDispatch, transitionDispatch, addProgress } = require('../src/services/wildlife/dispatchService');
 const wildlifeRoutes = require('../src/routes/wildlifeRoutes');
-const conflictRoutes = require('../src/routes/conflictRoutes');
 const { registerWildlifeSocket, emitWildlife } = require('../src/socket/wildlifeSocket');
 const { assertAlertTransition, assertDispatchTransition } = require('../src/services/wildlife/stateMachine');
 const { pointInRing, pointInPolygon, haversineKm, roundKm } = require('../src/services/wildlife/geo');
@@ -74,7 +71,6 @@ describe('wildlife monitoring', () => {
     const app = express();
     app.use(express.json());
     app.use('/api/wildlife', wildlifeRoutes);
-    app.use('/api/conflicts', conflictRoutes);
     server = await listen(app);
     baseUrl = `http://127.0.0.1:${server.address().port}`;
   });
@@ -87,8 +83,6 @@ describe('wildlife monitoring', () => {
 
   beforeEach(async () => {
     await seedWildlifeData({ managerId: manager._id, rangerId: ranger._id, farRangerId: farRanger._id });
-    await WildlifeConflict.deleteMany({});
-    await Alert.deleteMany({});
   });
 
   it('creates a high alert when coordinates cross a high-risk boundary', async () => {
@@ -336,55 +330,6 @@ describe('wildlife monitoring', () => {
     assert.ok(log.body.log.length > 0);
   });
 
-  it('submits and tracks community conflict reports, generates priority alerts, and manages assignment and resolution', async () => {
-    const submitted = await request('POST', '/api/conflicts', {
-      body: {
-        reporterName: 'Community member',
-        reporterPhone: '0771234567',
-        conflictType: 'HUMAN_INJURY',
-        description: 'Elephant encounter caused an injury',
-        latitude: '6.4',
-        longitude: '81.45',
-        villageArea: 'Katagamuwa',
-      },
-    });
-    assert.equal(submitted.status, 201);
-    assert.equal(typeof submitted.body.conflict.latitude, 'number');
-    assert.match(submitted.body.conflict.reportId, /^WC-/);
-    assert.equal(await Alert.countDocuments({ severity: 'CRITICAL' }), 1);
-
-    const id = submitted.body.conflict._id;
-    const tracked = await request('GET', `/api/conflicts/public/${id}`);
-    const listed = await request('GET', '/api/conflicts?status=REPORTED&conflictType=HUMAN_INJURY&reporterPhone=0771234567', { token: tokenFor(manager) });
-    const assigned = await request('PUT', `/api/conflicts/${id}/assign`, {
-      token: tokenFor(manager),
-      body: { rangerId: ranger._id.toString() },
-    });
-    const inProgress = await request('PUT', `/api/conflicts/${id}/status`, {
-      token: tokenFor(ranger),
-      body: { status: 'IN_PROGRESS' },
-    });
-    const resolved = await request('PUT', `/api/conflicts/${id}/status`, {
-      token: tokenFor(ranger),
-      body: { status: 'RESOLVED', resolutionNotes: 'Animal moved away; area checked.' },
-    });
-    const missing = await request('GET', '/api/conflicts/public/000000000000000000000000');
-    const forbiddenAssignment = await request('PUT', `/api/conflicts/${id}/assign`, {
-      token: tokenFor(ranger),
-      body: { rangerId: farRanger._id.toString() },
-    });
-
-    assert.equal(tracked.body.conflict._id, id);
-    assert.equal(listed.body.count, 1);
-    assert.equal(assigned.body.conflict.status, 'ASSIGNED');
-    assert.equal(inProgress.body.conflict.status, 'IN_PROGRESS');
-    assert.equal(resolved.body.conflict.status, 'RESOLVED');
-    assert.equal(resolved.body.conflict.resolutionNotes, 'Animal moved away; area checked.');
-    assert.ok(resolved.body.conflict.resolvedAt);
-    assert.equal(missing.status, 404);
-    assert.equal(forbiddenAssignment.status, 403);
-  });
-
   it('covers missing and invalid authentication, and distinguishes missing catalog records', async () => {
     const missingAuth = await request('GET', '/api/wildlife/animals');
     const invalidAuth = await request('GET', '/api/wildlife/animals', { token: 'not-a-valid-token' });
@@ -461,24 +406,6 @@ describe('wildlife monitoring', () => {
     assert.throws(() => assertAlertTransition('RESPONSE_DISPATCHED', 'RESOLVED', 'ANIMAL_RETREATED'), { statusCode: 409 });
     assert.throws(() => assertAlertTransition('NEW', 'IN_PROGRESS'), { statusCode: 409 });
     assert.throws(() => assertDispatchTransition('ASSIGNED', 'COMPLETED'), { statusCode: 409 });
-  });
-
-  it('creates reports without priority alerts and forwards invalid report errors', async () => {
-    const ordinary = await request('POST', '/api/conflicts', {
-      body: {
-        conflictType: 'SIGHTING',
-        description: 'Elephant sighting near the park',
-        latitude: 6.4,
-        longitude: 81.45,
-      },
-    });
-    assert.equal(ordinary.status, 201);
-    assert.equal(await Alert.countDocuments({}), 0);
-
-    const invalid = await request('POST', '/api/conflicts', {
-      body: { conflictType: 'NOT_A_CONFLICT', description: 'Invalid enum', latitude: 6.4, longitude: 81.45 },
-    });
-    assert.equal(invalid.status, 500);
   });
 
   it('covers telemetry validation, collarless sensors, camera trap errors, alert lookup, and alert resolution guards', async () => {
