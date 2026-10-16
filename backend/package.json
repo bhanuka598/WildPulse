@@ -6,7 +6,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed:wildlife": "node src/scripts/seedWildlifeDemo.js",
-    "test": "node --experimental-test-coverage --test --test-concurrency=1 --test-coverage-lines=81 --test-coverage-branches=81"
+    "test": "node --experimental-test-coverage --test --test-concurrency=1 --test-coverage-lines=81 --test-coverage-branches=81",
+    "test:analytics": "node --experimental-test-coverage --test --test-coverage-lines=90 --test-coverage-branches=90 tests/analytics.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
